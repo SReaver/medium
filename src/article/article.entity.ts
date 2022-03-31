@@ -1,5 +1,6 @@
 import { UserEntity } from '@app/user/user.entity';
-import { BeforeUpdate, Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { BeforeUpdate, Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { CommentEntity } from './comment.entity';
 
 @Entity({ name: 'articles' })
 export class ArticleEntity {
@@ -30,7 +31,8 @@ export class ArticleEntity {
 	@Column({ default: 0 })
 	favoritesCount: number
 
-
+	@OneToMany(() => CommentEntity, comment => comment.article)
+	comments: CommentEntity[]
 
 	@BeforeUpdate()
 	updateTimestamp() {

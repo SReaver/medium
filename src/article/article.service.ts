@@ -8,6 +8,10 @@ import { ArticleResponseInterface } from './types/articleResponse.interface';
 import slugify from 'slugify'
 import { ArticlesResponseInterface } from './types/articlesResponse.interface';
 import { FollowEntity } from '@app/profile/follow.entity';
+import { CommentEntity } from './comment.entity';
+import { CommentResponseInterface } from './types/commentResponse.interface';
+import { CreateCommentDto } from './dto/createComment.dto';
+import { CommentsResponseInterface } from './types/commentsResponse.interface';
 
 @Injectable()
 export class ArticleService {
@@ -15,12 +19,14 @@ export class ArticleService {
 		@InjectRepository(ArticleEntity) private readonly articleRepository: Repository<ArticleEntity>,
 		@InjectRepository(UserEntity) private readonly userRepository: Repository<UserEntity>,
 		@InjectRepository(FollowEntity) private readonly followRepository: Repository<FollowEntity>,
+		@InjectRepository(CommentEntity) private readonly commentRepository: Repository<CommentEntity>,
 	) { }
 
 	async findAll(currentUserId: number, query: any): Promise<ArticlesResponseInterface> {
 		const queryBuilder = getRepository(ArticleEntity)
 			.createQueryBuilder('articles')
 			.leftJoinAndSelect('articles.author', 'author')
+			.leftJoinAndSelect('articles.comments', 'comments')
 
 		queryBuilder.orderBy('articles.createdAt', 'DESC')
 		if (query.tag) {
@@ -32,7 +38,7 @@ export class ArticleService {
 			const author = await this.userRepository.findOne({
 				username: query.author
 			})
-			console.log(author)
+
 			queryBuilder.andWhere('articles.authorId = :id', {
 				id: author.id
 			})
@@ -121,7 +127,9 @@ export class ArticleService {
 	}
 
 	async findBySlug(slug: string): Promise<ArticleEntity> {
-		return await this.articleRepository.findOne({ slug })
+		return await this.articleRepository.findOne({ slug }, {
+			relations: ['comments']
+		})
 	}
 
 	async deleteArticle(slug: string, currentUserId: number): Promise<DeleteResult> {
@@ -148,8 +156,8 @@ export class ArticleService {
 
 		Object.assign(article, updateArticleDto)
 		return await this.articleRepository.save(article)
-
 	}
+
 	async addArticleToFavorites(slug: string, currentUserId: number): Promise<ArticleEntity> {
 		const article = await this.findBySlug(slug)
 		const user = await this.userRepository.findOne(currentUserId, {
@@ -181,8 +189,40 @@ export class ArticleService {
 		return article
 	}
 
+	async createComment(currentUser: UserEntity, slug: string, createCommentDto: CreateCommentDto): Promise<CommentEntity> {
+		const errorResponse = {
+			errors: {
+				'comment': 'Article not found'
+			}
+		}
+		const article = await this.findBySlug(slug)
+		if (!article) {
+			throw new HttpException(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY)
+		}
+
+		const comment = new CommentEntity()
+		Object.assign(comment, createCommentDto)
+		comment.author = currentUser
+		comment.article = article
+		await this.articleRepository.save(article)
+		await this.commentRepository.save(comment)
+		return comment
+	}
+
+	async getCommentsBySlug(slug: string): Promise<CommentEntity[]> {
+		const article = await this.findBySlug(slug)
+		return article.comments
+	}
+
 	buildArticleResponse(article: ArticleEntity): ArticleResponseInterface {
 		return { article }
+	}
+
+	buildCommentResponse(comment: CommentEntity): CommentResponseInterface {
+		return { comment }
+	}
+	buildCommentsResponse(comments: CommentEntity[]): CommentsResponseInterface {
+		return { comments }
 	}
 
 	private getSlug(title: string): string {
