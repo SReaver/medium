@@ -5,7 +5,6 @@ import { TagModule } from '@app/tag/tag.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import ormconfig from '@app/ormconfig'
 import { UserModule } from './user/user.module';
-import { UserController } from './user/user.controller';
 import { AuthMiddleware } from './user/middlewares/auth.middleware';
 import { ArticleModule } from './article/article.module';
 import { ProfileModule } from './profile/profile.module';

@@ -3,7 +3,6 @@ import { User } from '@app/user/decorators/user.decorator';
 import { AuthGuard } from '@app/user/guards/auth.guard';
 import { UserEntity } from '@app/user/user.entity';
 import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards, UsePipes } from '@nestjs/common';
-import { timeStamp } from 'console';
 import { ArticleService } from './article.service';
 import { CreateArticleDto } from './dto/createArticle.dto';
 import { CreateCommentDto } from './dto/createComment.dto';
@@ -41,7 +40,6 @@ export class ArticleController {
 		@Body('article') createArticleDto: CreateArticleDto
 	): Promise<ArticleResponseInterface> {
 		const article = await this.articleService.createArticle(currentUser, createArticleDto)
-
 		return await this.articleService.buildArticleResponse(article)
 	}
 

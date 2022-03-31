@@ -32,6 +32,7 @@ export class ProfileService {
 
 	async followProfile(currentUserId: number, profileUsername: string): Promise<ProfileType> {
 		const user = await this.userRepository.findOne({ username: profileUsername })
+
 		if (!user) {
 			throw new HttpException('Profile does not exist', HttpStatus.NOT_FOUND)
 		}

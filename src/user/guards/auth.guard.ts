@@ -6,6 +6,7 @@ import { CanActivate, ExecutionContext, HttpException, HttpStatus } from '@nestj
 export class AuthGuard implements CanActivate {
 	canActivate(context: ExecutionContext): boolean | Promise<boolean> {
 		const request = context.switchToHttp().getRequest<ExpressRequestInterface>()
+
 		if (request.user) {
 			return true
 		}

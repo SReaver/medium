@@ -12,6 +12,7 @@ import { UserService } from './user.service';
 @Controller()
 export class UserController {
 	constructor(private readonly userSerice: UserService) { }
+
 	@Post('users')
 	@UsePipes(new BackendValidationPipe())
 	async creteUser(@Body('user') createUserDto: CreateUserDto): Promise<UserResponseInterface> {

@@ -29,11 +29,13 @@ export class ArticleService {
 			.leftJoinAndSelect('articles.comments', 'comments')
 
 		queryBuilder.orderBy('articles.createdAt', 'DESC')
+
 		if (query.tag) {
 			queryBuilder.andWhere('articles.tagList LIKE :tag', {
 				tag: `%${query.tag}%`
 			})
 		}
+
 		if (query.author) {
 			const author = await this.userRepository.findOne({
 				username: query.author
@@ -43,6 +45,7 @@ export class ArticleService {
 				id: author.id
 			})
 		}
+
 		if (query.favorited) {
 			const author = await this.userRepository.findOne({
 				username: query.favorited
@@ -51,12 +54,14 @@ export class ArticleService {
 					relations: ['favorites']
 				})
 			const ids = author.favorites.map(el => el.id)
+
 			if (ids.length > 0) {
 				queryBuilder.andWhere('articles.authorId IN (:...ids)', { ids })
 			} else {
 				queryBuilder.andWhere('1=0')
 			}
 		}
+
 		if (query.limit) {
 			queryBuilder.limit(query.limit)
 		}
@@ -80,12 +85,10 @@ export class ArticleService {
 		})
 
 		const articlesCount = await queryBuilder.getCount()
-
 		return { articles: articlesWithFavorites, articlesCount }
 	}
 
 	async getFeed(currentUserId: number, query: any): Promise<ArticlesResponseInterface> {
-
 		const follows = await this.followRepository.find({
 			followerId: currentUserId
 		})
@@ -111,7 +114,6 @@ export class ArticleService {
 		}
 
 		const articles = await queryBuilder.getMany()
-
 		return { articles, articlesCount }
 	}
 
@@ -164,13 +166,13 @@ export class ArticleService {
 			relations: ['favorites'],
 		})
 		const isNotFavorited = user.favorites.findIndex(articleFavorites => articleFavorites.id === article.id) === -1
+
 		if (isNotFavorited) {
 			user.favorites.push(article)
 			article.favoritesCount++
 			await this.userRepository.save(user)
 			await this.articleRepository.save(article)
 		}
-
 		return article
 	}
 
@@ -180,6 +182,7 @@ export class ArticleService {
 			relations: ['favorites'],
 		})
 		const articleIndex = user.favorites.findIndex(articleFavorites => articleFavorites.id === article.id)
+
 		if (articleIndex >= 0) {
 			user.favorites.splice(articleIndex, 1)
 			article.favoritesCount--
@@ -196,6 +199,7 @@ export class ArticleService {
 			}
 		}
 		const article = await this.findBySlug(slug)
+
 		if (!article) {
 			throw new HttpException(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY)
 		}
@@ -221,6 +225,7 @@ export class ArticleService {
 	buildCommentResponse(comment: CommentEntity): CommentResponseInterface {
 		return { comment }
 	}
+
 	buildCommentsResponse(comments: CommentEntity[]): CommentsResponseInterface {
 		return { comments }
 	}

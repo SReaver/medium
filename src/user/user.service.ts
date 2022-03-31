@@ -22,9 +22,11 @@ export class UserService {
 		}
 		const userByEmail = await this.userRepository.findOne({ email: createUserDto.email })
 		const userByUsername = await this.userRepository.findOne({ username: createUserDto.username })
+
 		if (userByEmail) {
 			errorResponse.errors['email'] = 'Has already been taken'
 		}
+
 		if (userByUsername) {
 			errorResponse.errors['username'] = 'Has already been taken'
 		}
@@ -50,10 +52,13 @@ export class UserService {
 			{
 				select: ['id', 'username', 'email', 'bio', 'image', 'password']
 			})
+
 		if (!user) {
 			throw new HttpException(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY)
 		}
+
 		const isPasswordCorrrect = await compare(loginUserDto.password, user.password)
+
 		if (!isPasswordCorrrect) {
 			throw new HttpException(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY)
 		}
